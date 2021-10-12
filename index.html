@@ -47,12 +47,22 @@
             margin-left: 5px;
         }
 
-        .box #btn {
+        .box #btn{
             width: 80%;
             margin-left: 10%;
             background-color: rgb(85, 138, 78);
             color: white;
             font-weight: bold;
+
+
+        }
+        .box #btn-reset{
+            width: 80%;
+            margin-left: 10%;
+            background-color: rgb(11, 105, 228);
+            color: white;
+            font-weight: bold;
+            margin-top: 8px;
 
 
         }
@@ -96,7 +106,8 @@
                 <input id="interval" type="text" placeholder="e.g. (1,7) => `1,7`"><br><br>
                 <label for="interval">Decimal places: </label>
                 <input id="err" type="number" placeholder="e.g. 2.3465 => 4"><br><br>
-                <input id="btn" type="button" value="Get answer">
+                <input id="btn" class="btn" type="button" value="Get answer">
+                <input id="btn-reset" class="btn hide" type="button" value="Reset">
             </form>
         </div>
         <div id="answer" class="answer hide">
@@ -186,7 +197,16 @@
 
         let answer=document.getElementById("answer")
         answer.classList.replace("hide", "block")
+        document.getElementById("btn-reset").classList.replace("hide","block")
 
+    })
+    document.getElementById("btn-reset").addEventListener("click",(e)=>{
+        e.preventDefault()
+        document.getElementById("eqn").value=""
+        document.getElementById("interval").value=""
+        document.getElementById("err").value=""
+        answer.classList.replace("block","hide")
+        document.getElementById("btn-reset").classList.replace("block","hide")
     })
 
 </script>
