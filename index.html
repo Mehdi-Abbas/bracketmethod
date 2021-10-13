@@ -18,7 +18,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: powderblue;
+            /* background-color: powderblue; */
             font-family: 'Courier New', Courier;
         }
 
@@ -29,7 +29,7 @@
             padding: 20px 10px;
             background-color: rgb(222, 184, 135);
             border-radius: 10px;
-            margin: 20px 20px;
+            margin: 9px 20px;
 
         }
 
@@ -47,7 +47,7 @@
             margin-left: 5px;
         }
 
-        .box #btn{
+        .box #btn {
             width: 80%;
             margin-left: 10%;
             background-color: rgb(85, 138, 78);
@@ -56,7 +56,8 @@
 
 
         }
-        .box #btn-reset{
+
+        .box #btn-reset {
             width: 80%;
             margin-left: 10%;
             background-color: rgb(11, 105, 228);
@@ -93,6 +94,29 @@
         .show {
             display: block;
         }
+
+        .table {
+            font-family: Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 90%;
+            margin: 20px auto;
+            overflow: scroll;
+        }
+
+        .table td,
+        .table th {
+            border: 1px solid#000;
+            padding: 2px;
+            text-align: center;
+        }
+
+        .table th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            /* text-align: left; */
+            background-color: rgb(102, 154, 231);
+            color: black;
+        }
     </style>
 </head>
 
@@ -104,8 +128,12 @@
                 <input id="eqn" type="text" placeholder="e.g. 3x^3-2x^2+1 => `3,-2,0,1`"><br><br>
                 <label for="interval">Interval: </label>
                 <input id="interval" type="text" placeholder="e.g. (1,7) => `1,7`"><br><br>
+                <label for="interval">Error: </label>
+                <input id="err" type="number" placeholder="e.g. 10% => 10"><br><br>
+                <label for="interval">Max iterations: </label>
+                <input id="itr" type="number" placeholder="e.g. 7"><br><br>
                 <label for="interval">Decimal places: </label>
-                <input id="err" type="number" placeholder="e.g. 2.3465 => 4"><br><br>
+                <input id="dec" type="number" placeholder="e.g. 2.3465 => 4"><br><br>
                 <input id="btn" class="btn" type="button" value="Get answer">
                 <input id="btn-reset" class="btn hide" type="button" value="Reset">
             </form>
@@ -114,15 +142,30 @@
             <label>Answer</label>
             <p id="ans"></p>
         </div>
+        <div id="table" class="table hide">
+
+
+        </div>
     </div>
 
 </body>
 <script>
     let main = document.getElementById("main")
-    main.style.width = screen.width + "px"
-    main.style.height = screen.height + "px"
+    let tableStr = `
+            <table>
+                <tr>
+                    <th>iteration</th>
+                    <th>x<sub>L</sub></th>
+                    <th>x<sub>u</sub></th>
+                    <th>f(x<sub>u</sub>)</th>
+                    <th>f(x<sub>L</sub>)</th>
+                    <th>x<sub>r</sub></th>
+                    <th>f(x<sub>r</sub>)</th>
+                    <th>error</th>
+                </tr>`
 
     function getY(coeffs, x) {
+
         let n = 0
         let exp = coeffs.length - 1
         for (i = 0; i < coeffs.length; i++) {
@@ -132,43 +175,72 @@
         return n
     }
     function getDiff(num1, num2) {
-        let temp = ((Math.abs(num1 - num2)) / num1) * 100
+        let temp = Math.abs((num1 - num2) / num1) * 100
         temp = Math.trunc(temp)
         return temp
     }
-    function getCenter(num1, num2){
-        return ((num1+num2)/2)
+    function getcenter(num1, num2) {
+        return ((num1 + num2) / 2)
     }
-    function findRoots(coeffs, interval, err){
-        if(getY(coeffs, interval[0])*getY(coeffs, interval[1])<0){
-            if(interval[0].toFixed(err)===interval[1].toFixed(err)){
-               return getCenter(interval[0],interval[1]).toFixed(err)
+    let s = 1
+    function findRoots(coeffs, interval, err, itr, dec) {
+        if (getY(coeffs, interval[0]) * getY(coeffs, interval[1]) < 0) {
+            tableStr += `
+                <tr>
+                    <td>${s}</td>
+                    <td>${interval[0].toFixed(dec)}</td>
+                    <td>${interval[1].toFixed(dec)}</td>
+                    <td>${getY(coeffs, interval[0]).toFixed(dec)}</td>
+                    <td>${getY(coeffs, interval[1]).toFixed(dec)}</td>
+                    <td>${getcenter(interval[0], interval[1]).toFixed(dec)}</td>
+                    <td>${getY(coeffs, getcenter(interval[0], interval[1])).toFixed(dec)}</td>
+                    <td>${getDiff(getcenter(interval[0], interval[1]), interval[interval[2]]) + "%"}</td>
+                </tr>`
+            s++
+            if (getDiff(getcenter(interval[0], interval[1]), interval[interval[2]]) < err ||
+                itr <= 0) {
+                console.log("err: " + err + " error: " + getDiff(getcenter(interval[0], interval[1]), interval[interval[2]]))
+                return getcenter(interval[0], interval[1]).toFixed(dec)
             }
-            else{
-                
-                let center=getCenter(interval[0],interval[1])
-                
-                if(getY(coeffs, center)>0){
-                    if(interval[0]>interval[1]){
-                        interval[0]=center
-                        interval[2]=0
-                    }else{
-                        interval[1]=center
-                        interval[2]=1
-                    }
+            else {
 
-                }else{
-                    if(interval[0]<interval[1]){
-                        interval[0]=center
-                        interval[2]=0
-                    }else{
-                        interval[1]=center
-                        interval[2]=1
-                    }
+
+
+                let center = getcenter(interval[0], interval[1])//center
+                console.log("interval: " + interval)
+                console.log("err: " + err + " error: " + getDiff(getcenter(interval[0], interval[1]), interval[interval[2]]))
+                console.log("center: " + getcenter(interval[0], interval[1]).toFixed(dec))
+
+                if (getY(coeffs, interval[0]) * getY(coeffs, center) < 0) {
+                    interval[1] = center
+                    interval[2] = 1
                 }
-                
-                return findRoots(coeffs, interval, err)
+                else if (getY(coeffs, interval[0]) * getY(coeffs, center) > 0) {
+                    interval[0] = center
+                    interval[2] = 0
+                }
+                else {
+                    err = 10000 //making error infinite to stop iteration
+                }
+
+
+                return findRoots(coeffs, interval, err, itr - 1, dec)
             }
+        }
+        else if (document.getElementById("eqn").value === "") {
+            document.getElementById("ans").style.fontSize = "1rem"
+            return "Enter query first!"
+        }
+        else if (getY(coeffs, interval[0]) * getY(coeffs, interval[1]) > 0) {
+            document.getElementById("ans").style.fontSize = "1rem"
+            console.log("inte: " + interval)
+            console.log("fxl: " + getY(coeffs, interval[0]) + " fxu: " + getY(coeffs, interval[1]))
+            return "Interval must contain only a single root!"
+        }
+
+        else {
+            document.getElementById("ans").style.fontSize = "1rem"
+            return "Root is either one of given interval point"
         }
     }
 
@@ -177,6 +249,19 @@
     let button = document.getElementById("btn")
     button.addEventListener("click", (e) => {
         e.preventDefault()
+        s = 1
+        tableStr = `
+            <table>
+                <tr>
+                    <th>iteration</th>
+                    <th>x<sub>L</sub></th>
+                    <th>x<sub>u</sub></th>
+                    <th>f(x<sub>u</sub>)</th>
+                    <th>f(x<sub>L</sub>)</th>
+                    <th>x<sub>r</sub></th>
+                    <th>f(x<sub>r</sub>)</th>
+                    <th>error</th>
+                </tr>`
         let coeffs = document.getElementById("eqn").value
         coeffs = coeffs.split(",")
         coeffsInt = []
@@ -187,26 +272,42 @@
         interval = interval.split(",")
         intervalInt = []
         for (i in interval) {
-            intervalInt.push(parseInt(i))
+            intervalInt.push(parseFloat(interval[i]))
         }
         intervalInt.push(0)
         let err = document.getElementById("err").value
-        err = parseInt(err)
-        let root=findRoots(coeffsInt, intervalInt, err)
-        document.getElementById("ans").innerText=root
+        err = parseFloat(err)
 
-        let answer=document.getElementById("answer")
+        let itr = document.getElementById("itr").value
+        itr = parseInt(itr)
+        let dec = document.getElementById("dec").value
+        dec = parseInt(dec)
+
+        let root = findRoots(coeffsInt, intervalInt, err, itr, dec)
+        tableStr += `</table>`
+        document.getElementById("table").innerHTML = tableStr
+        document.getElementById("ans").innerText = root
+
+        let answer = document.getElementById("answer")
         answer.classList.replace("hide", "block")
-        document.getElementById("btn-reset").classList.replace("hide","block")
+        document.getElementById("btn-reset").classList.replace("hide", "block")
 
+        let table = document.getElementById("table")
+        table.classList.replace("hide", "block")
+
+        document.getElementById('table').scrollIntoView();
     })
-    document.getElementById("btn-reset").addEventListener("click",(e)=>{
+    document.getElementById("btn-reset").addEventListener("click", (e) => {
         e.preventDefault()
-        document.getElementById("eqn").value=""
-        document.getElementById("interval").value=""
-        document.getElementById("err").value=""
-        answer.classList.replace("block","hide")
-        document.getElementById("btn-reset").classList.replace("block","hide")
+        document.getElementById("eqn").value = ""
+        document.getElementById("interval").value = ""
+        document.getElementById("err").value = ""
+        document.getElementById("itr").value = ""
+        document.getElementById("dec").value = ""
+        answer.classList.replace("block", "hide")
+        document.getElementById("ans").style.fontSize = "2rem"
+        document.getElementById("btn-reset").classList.replace("block", "hide")
+        document.getElementById("table").classList.replace("block", "hide")
     })
 
 </script>
